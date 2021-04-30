@@ -2,6 +2,7 @@ package com.camelodev.libraryapi.api.resource;
 
 import com.camelodev.libraryapi.api.dto.BookDTO;
 import com.camelodev.libraryapi.api.exception.ApiErrors;
+import com.camelodev.libraryapi.exception.BusinessException;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.service.BookService;
 import org.modelmapper.ModelMapper;
@@ -43,5 +44,11 @@ public class BookController {
     public ApiErrors handleValidationExceptions(MethodArgumentNotValidException ex){
         BindingResult bindingResult = ex.getBindingResult();
         return new ApiErrors(bindingResult);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ApiErrors handleBusinessException(BusinessException ex){
+        return new ApiErrors(ex);
     }
 }
