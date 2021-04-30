@@ -1,8 +1,10 @@
 package com.camelodev.libraryapi.service;
 
+import com.camelodev.libraryapi.exception.BusinessException;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.model.repository.BookRepository;
 import com.camelodev.libraryapi.service.impl.BookServiceImpl;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -32,7 +36,8 @@ public class BookServiceTest {
     @DisplayName("Deve salvar um livro")
     public void saveBookTest(){
         // cenário
-        Book book = Book.builder().isbn("123").author("Fulano").title("Poemas e Poesias").build();
+        Book book = createValidBook();
+        when(repository.existsByIsbn(anyString())).thenReturn(false);
         Mockito.when(repository.save(book))
                 .thenReturn(Book.builder()
                                 .id(1L)
@@ -50,6 +55,28 @@ public class BookServiceTest {
         assertThat(savedBook.getTitle()).isEqualTo("Poemas e Poesias");
         assertThat(savedBook.getAuthor()).isEqualTo("Fulano");
 
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro de negócio ao tentar salvar um livro com isbn duplicado")
+    public void shouldNotSaveABookWithDuplicatedISBN(){
+        // cenario
+        Book book = createValidBook();
+        when(repository.existsByIsbn(anyString())).thenReturn(true);
+
+        // execução
+        Throwable exception = catchThrowable(() -> service.save(book));
+
+        // verificações
+        assertThat(exception)
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Isbn já cadastrado.");
+
+        verify(repository, never()).save(book);
+    }
+
+    private Book createValidBook() {
+        return Book.builder().isbn("123").author("Fulano").title("Poemas e Poesias").build();
     }
 
 }
