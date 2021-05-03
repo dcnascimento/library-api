@@ -142,13 +142,24 @@ public class BookServiceTest {
     @DisplayName("Deve atualizar um livro")
     public void updateBookTest(){
         // cenario
-        Book book = Book.builder().id(1L).build();
+        Long id = 1L;
+
+        //livro a atualizar
+        Book updatingBook = Book.builder().id(id).build();
+
+        //simulação
+        Book updatedBook = createValidBook();
+        updatedBook.setId(id);
+        when(repository.save(updatingBook)).thenReturn(updatedBook);
 
         // execução
-        assertDoesNotThrow( () -> service.update(book));
+        Book book = service.update(updatingBook);
 
         // verificações
-        verify(repository, times(1)).save(book);
+        assertThat(book.getId()).isEqualTo(updatedBook.getId());
+        assertThat(book.getTitle()).isEqualTo(updatedBook.getTitle());
+        assertThat(book.getAuthor()).isEqualTo(updatedBook.getAuthor());
+        assertThat(book.getIsbn()).isEqualTo(updatedBook.getIsbn());
     }
 
     @Test
