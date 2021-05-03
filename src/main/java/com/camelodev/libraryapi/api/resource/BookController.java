@@ -5,7 +5,6 @@ import com.camelodev.libraryapi.api.exception.ApiErrors;
 import com.camelodev.libraryapi.exception.BusinessException;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.service.BookService;
-import com.camelodev.libraryapi.service.impl.BookServiceImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -24,7 +23,7 @@ public class BookController {
     private BookService service;
     private ModelMapper modelMapper;
 
-    public BookController(BookServiceImpl service, ModelMapper mapper) {
+    public BookController(BookService service, ModelMapper mapper) {
         this.service = service;
         this.modelMapper = mapper;
     }
@@ -44,6 +43,14 @@ public class BookController {
         return service.getById(id)
                 .map(book -> modelMapper.map(book, BookDTO.class))
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(NO_CONTENT)
+    public void delete(@PathVariable Long id){
+        Book book =  service.getById(id)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+        service.delete(book);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
