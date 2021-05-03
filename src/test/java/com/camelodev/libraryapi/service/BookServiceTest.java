@@ -4,7 +4,6 @@ import com.camelodev.libraryapi.exception.BusinessException;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.model.repository.BookRepository;
 import com.camelodev.libraryapi.service.impl.BookServiceImpl;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +12,8 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -73,6 +74,41 @@ public class BookServiceTest {
                 .hasMessage("Isbn já cadastrado.");
 
         verify(repository, never()).save(book);
+    }
+
+    @Test
+    @DisplayName("Deve obter um livro por Id")
+    public void getByIdTest(){
+        // cenario
+        Long id = 1L;
+        Book book = createValidBook();
+        book.setId(id);
+        when(repository.findById(id)).thenReturn(Optional.of(book));
+
+        // execução
+        Optional<Book> foundBook = service.getById(id);
+
+        // verificações
+        assertThat(foundBook.isPresent()).isTrue();
+        assertThat(foundBook.get().getId()).isEqualTo(id);
+        assertThat(foundBook.get().getAuthor()).isEqualTo(book.getAuthor());
+        assertThat(foundBook.get().getTitle()).isEqualTo(book.getTitle());
+        assertThat(foundBook.get().getIsbn()).isEqualTo(book.getIsbn());
+    }
+
+    @Test
+    @DisplayName("Deve retornar vazio ao obter um livro que não existe na base")
+    public void bookNotFoundByIdTest(){
+        // cenario
+        Long id = 1L;
+
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        // execução
+        Optional<Book> book = service.getById(id);
+
+        // verificações
+        assertThat(book.isPresent()).isFalse();
     }
 
     private Book createValidBook() {
