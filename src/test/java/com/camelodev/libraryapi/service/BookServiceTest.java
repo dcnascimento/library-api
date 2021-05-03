@@ -78,5 +78,4 @@ public class BookServiceTest {
     private Book createValidBook() {
         return Book.builder().isbn("123").author("Fulano").title("Poemas e Poesias").build();
     }
-
 }
