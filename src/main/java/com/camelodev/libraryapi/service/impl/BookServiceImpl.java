@@ -4,11 +4,15 @@ import com.camelodev.libraryapi.exception.BusinessException;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.model.repository.BookRepository;
 import com.camelodev.libraryapi.service.BookService;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static org.springframework.data.domain.ExampleMatcher.StringMatcher.CONTAINING;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -51,6 +55,14 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<Book> find(Book filter, Pageable pageRequest) {
-        return null;
+        Example<Book> example = Example.of(filter,
+                ExampleMatcher
+                        .matching()
+                        .withIgnoreCase()
+                        .withIgnoreNullValues()
+                        .withStringMatcher(CONTAINING)
+            );
+
+        return repository.findAll(example, pageRequest);
     }
 }
