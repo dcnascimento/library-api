@@ -186,6 +186,56 @@ public class BookControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Deve atualizar um livro")
+    public void updateBookTest() throws Exception{
+        Long id = 1L;
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+
+        Book updatingBook = Book.builder().id(1L).title("some title").author("some author").isbn("321").build();
+
+        given(bookService.getById(anyLong()))
+                .willReturn(Optional.of(updatingBook));
+
+        Book updatedBook = Book.builder().id(id).author("Daniel").title("As aventuras").isbn("321").build();
+
+        given(bookService.update(updatingBook)).willReturn(updatedBook);
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/" + 1))
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(id))
+                .andExpect(jsonPath("title").value(createNewBook().getTitle()))
+                .andExpect(jsonPath("author").value(createNewBook().getAuthor()))
+                .andExpect(jsonPath("isbn").value("321"));
+
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar resource not found quando não encontar um livro para atualizar")
+    public void updateInexistentBookTest() throws Exception{
+
+        String json = new ObjectMapper().writeValueAsString(createNewBook());
+
+        given(bookService.getById(anyLong()))
+                .willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .put(BOOK_API.concat("/" + 1))
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(request)
+                .andExpect(status().isNotFound());
+    }
+
     private BookDTO createNewBook() {
         return BookDTO.builder().author("Daniel").title("As aventuras").isbn("001").build();
     }

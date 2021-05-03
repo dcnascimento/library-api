@@ -33,6 +33,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void delete(Book book) {
+    }
 
+    @Override
+    public Book update(Book book) {
+        return repository.save(book);
     }
 }
