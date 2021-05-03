@@ -1,7 +1,6 @@
 package com.camelodev.libraryapi.model.repository;
 
 import com.camelodev.libraryapi.model.entity.Book;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +30,7 @@ public class BookRepositoryTest {
     public void returnTrueWhenIsbnExists(){
         //cenário
         String isbn = "123";
-        Book book = Book.builder().title("Poemas").author("Daniel").isbn(isbn).build();
+        Book book = createNewBook(isbn);
         entityManager.persist(book);
 
         //verificação
@@ -50,5 +51,23 @@ public class BookRepositoryTest {
 
         //execução
         assertThat(exists).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deve obter um livro quando buscar por id")
+    public void findByIdTest(){
+        //cenário
+        Book book = createNewBook("123");
+        entityManager.persist(book);
+
+        //execução
+        Optional<Book> foundBook = repository.findById(book.getId());
+
+        //verificações
+        assertThat(foundBook.isPresent()).isTrue();
+    }
+
+    private Book createNewBook(String isbn) {
+        return Book.builder().title("Poemas").author("Daniel").isbn(isbn).build();
     }
 }
