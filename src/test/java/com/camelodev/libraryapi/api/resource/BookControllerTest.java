@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
-@WebMvcTest
+@WebMvcTest(controllers = BookController.class)
 @AutoConfigureMockMvc
 public class BookControllerTest {
 
@@ -253,7 +253,7 @@ public class BookControllerTest {
                 .build();
 
         given(bookService.find(any(Book.class), any(Pageable.class)))
-                .willReturn(new PageImpl<Book>(Arrays.asList(book), PageRequest.of(0, 100),1));
+                .willReturn(new PageImpl<>(Arrays.asList(book), PageRequest.of(0, 100),1));
 
         String queryString = String.format("?title=%s&author=%s&page=0&size=100",
                 book.getTitle(),
