@@ -1,6 +1,7 @@
 package com.camelodev.libraryapi.service;
 
 
+import com.camelodev.libraryapi.exception.BusinessException;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.model.entity.Loan;
 import com.camelodev.libraryapi.model.repository.LoanRepository;
@@ -16,7 +17,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.ThrowableAssert.catchThrowable;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -51,6 +53,7 @@ public class LoanServiceTest {
                 .customer(customer)
                 .build();
 
+        when(repository.existsByBookAndNotReturned(book)).thenReturn(false);
         when(repository.save(savingLoan)).thenReturn(savedLoan);
         Loan loan = service.save(savingLoan);
 
@@ -58,5 +61,27 @@ public class LoanServiceTest {
         assertThat(loan.getBook().getId()).isEqualTo(savedLoan.getBook().getId());
         assertThat(loan.getLoanDate()).isEqualTo(savedLoan.getLoanDate());
         assertThat(loan.getCustomer()).isEqualTo(savedLoan.getCustomer());
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro de negócio ao salvar um empréstimo com livro já emprestado")
+    public void loanedBookSaveTest(){
+        String customer = "Daniel";
+        Book book = Book.builder().id(1L).build();
+
+        Loan savingLoan = Loan.builder()
+                .book(book)
+                .customer(customer)
+                .loanDate(LocalDate.now())
+                .build();
+
+        when(repository.existsByBookAndNotReturned(book)).thenReturn(true);
+
+        Throwable exception = catchThrowable(() -> service.save(savingLoan));
+
+        assertThat(exception).isInstanceOf(BusinessException.class)
+                .hasMessage("Book already loaned");
+
+        verify(repository, never()).save(savingLoan);
     }
 }
