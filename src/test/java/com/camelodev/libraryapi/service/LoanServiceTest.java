@@ -15,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.api.ThrowableAssert.catchThrowable;
@@ -24,14 +25,14 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 public class LoanServiceTest {
 
-    private LoanService service;
+    private LoanService loanService;
 
     @MockBean
     private LoanRepository repository;
 
     @BeforeEach
     public void setUp(){
-        this.service = new LoanServiceImpl(repository);
+        this.loanService = new LoanServiceImpl(repository);
     }
 
     @Test
@@ -55,7 +56,7 @@ public class LoanServiceTest {
 
         when(repository.existsByBookAndNotReturned(book)).thenReturn(false);
         when(repository.save(savingLoan)).thenReturn(savedLoan);
-        Loan loan = service.save(savingLoan);
+        Loan loan = loanService.save(savingLoan);
 
         assertThat(loan.getId()).isEqualTo(savedLoan.getId());
         assertThat(loan.getBook().getId()).isEqualTo(savedLoan.getBook().getId());
@@ -66,22 +67,51 @@ public class LoanServiceTest {
     @Test
     @DisplayName("Deve lançar erro de negócio ao salvar um empréstimo com livro já emprestado")
     public void loanedBookSaveTest(){
-        String customer = "Daniel";
         Book book = Book.builder().id(1L).build();
 
-        Loan savingLoan = Loan.builder()
-                .book(book)
-                .customer(customer)
-                .loanDate(LocalDate.now())
-                .build();
+        Loan savingLoan = createLoan();
 
         when(repository.existsByBookAndNotReturned(book)).thenReturn(true);
 
-        Throwable exception = catchThrowable(() -> service.save(savingLoan));
+        Throwable exception = catchThrowable(() -> loanService.save(savingLoan));
 
         assertThat(exception).isInstanceOf(BusinessException.class)
                 .hasMessage("Book already loaned");
 
         verify(repository, never()).save(savingLoan);
     }
+
+    @Test
+    @DisplayName("Deve obter as informações de um emprestimo pelo id")
+    public void getLoanDetailsTest(){
+        Long id = 1L;
+
+        Loan loan = createLoan();
+        loan.setId(id);
+
+        when(repository.findById(id)).thenReturn(Optional.of(loan));
+
+        Optional<Loan> result = loanService.getById(id);
+
+        assertThat(result.isPresent()).isTrue();
+        assertThat(result.get().getId()).isEqualTo(id);
+        assertThat(result.get().getCustomer()).isEqualTo(loan.getCustomer());
+        assertThat(result.get().getLoanDate()).isEqualTo(loan.getLoanDate());
+        assertThat(result.get().getBook()).isEqualTo(loan.getBook());
+
+        verify(repository).findById(id);
+    }
+
+    public Loan createLoan(){
+        String customer = "Daniel";
+        Book book = Book.builder().id(1L).build();
+
+        return Loan.builder()
+                .book(book)
+                .customer(customer)
+                .loanDate(LocalDate.now())
+                .build();
+    }
+
+
 }

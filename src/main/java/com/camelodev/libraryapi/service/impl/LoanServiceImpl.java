@@ -25,11 +25,11 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public Optional<Loan> getById(Long id) {
-        return Optional.of(new Loan());
+        return repository.findById(id);
     }
 
     @Override
     public Loan update(Loan loan) {
-        return null;
+        return repository.save(loan);
     }
 }
