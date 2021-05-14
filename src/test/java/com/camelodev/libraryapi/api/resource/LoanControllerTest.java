@@ -119,7 +119,7 @@ public class LoanControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar um livro")
+    @DisplayName("Deve devolver um livro")
     public void returnBookTest() throws Exception{
         ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
 
@@ -138,5 +138,22 @@ public class LoanControllerTest {
 
         verify(loanService, times(1)).update(loan);
 
+    }
+
+    @Test
+    @DisplayName("Deve retornar 404 quando tentar devolver um livro inexistente")
+    public void returnInexistentBookTest() throws Exception{
+        ReturnedLoanDTO dto = ReturnedLoanDTO.builder().returned(true).build();
+        given(loanService.getById(anyLong())).willReturn(Optional.empty());
+
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        mvc.perform(
+                patch(LOAN_API.concat("/1"))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json)
+        ).andExpect(status().isNotFound()
+        );
     }
 }
