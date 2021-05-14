@@ -1,6 +1,7 @@
 package com.camelodev.libraryapi.api.resource;
 
 import com.camelodev.libraryapi.api.dto.LoanDTO;
+import com.camelodev.libraryapi.api.dto.ReturnedLoanDTO;
 import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.model.entity.Loan;
 import com.camelodev.libraryapi.service.BookService;
@@ -39,5 +40,12 @@ public class LoanController {
         entity = loanService.save(entity);
 
         return entity.getId();
+    }
+
+    @PatchMapping("/{id}")
+    public void returnBook(@PathVariable Long id, @RequestBody ReturnedLoanDTO dto){
+        Loan loan = loanService.getById(id).get();
+        loan.setReturned(dto.getReturned());
+        loanService.update(loan);
     }
 }
