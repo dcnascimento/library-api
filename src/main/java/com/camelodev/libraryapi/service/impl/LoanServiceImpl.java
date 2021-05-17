@@ -2,6 +2,7 @@ package com.camelodev.libraryapi.service.impl;
 
 import com.camelodev.libraryapi.api.dto.LoanFilterDTO;
 import com.camelodev.libraryapi.exception.BusinessException;
+import com.camelodev.libraryapi.model.entity.Book;
 import com.camelodev.libraryapi.model.entity.Loan;
 import com.camelodev.libraryapi.model.repository.LoanRepository;
 import com.camelodev.libraryapi.service.LoanService;
@@ -39,5 +40,10 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public Page<Loan> find(LoanFilterDTO filterDTO, Pageable pageable) {
         return repository.findByBookIsbnOrCustomer(filterDTO.getIsbn(), filterDTO.getCustomer(), pageable);
+    }
+
+    @Override
+    public Page<Loan> getLoansByBook(Book book, Pageable pageable) {
+        return repository.findByBook(book, pageable);
     }
 }
