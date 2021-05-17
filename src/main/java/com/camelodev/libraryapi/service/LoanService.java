@@ -23,5 +23,5 @@ public interface LoanService {
 
     Page<Loan> getLoansByBook(Book book, Pageable pageable);
 
-    List<Loan> getAllLoans();
+    List<Loan> getAllLateLoans();
 }
